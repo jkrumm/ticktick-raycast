@@ -134,7 +134,7 @@ export default function CreateTask({ task, onDone }: Props) {
       />
 
       {labelList.length > 0 && (
-        <Form.TagPicker id="labels" title="Labels" defaultValue={task?.labels.map((l) => String(l.id)) ?? []}>
+        <Form.TagPicker id="labels" title="Labels" defaultValue={(task?.labels ?? []).map((l) => String(l.id))}>
           {labelList.map((l) => (
             <Form.TagPicker.Item key={l.id} value={String(l.id)} title={l.title} />
           ))}

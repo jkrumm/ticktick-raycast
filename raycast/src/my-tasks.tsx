@@ -74,9 +74,9 @@ function TaskDetail({ task, projectName, onUpdate }: { task: VikunjaTask; projec
               icon={{ source: Icon.Calendar, tintColor: dueDateColor(task.due_date) }}
             />
           )}
-          {task.labels.length > 0 && (
+          {(task.labels ?? []).length > 0 && (
             <Detail.Metadata.TagList title="Labels">
-              {task.labels.map((l) => (
+              {(task.labels ?? []).map((l) => (
                 <Detail.Metadata.TagList.Item
                   key={l.id}
                   text={l.title}
@@ -85,10 +85,10 @@ function TaskDetail({ task, projectName, onUpdate }: { task: VikunjaTask; projec
               ))}
             </Detail.Metadata.TagList>
           )}
-          {task.assignees.length > 0 && (
+          {(task.assignees ?? []).length > 0 && (
             <Detail.Metadata.Label
               title="Assignees"
-              text={task.assignees.map((a) => a.name || a.username).join(", ")}
+              text={(task.assignees ?? []).map((a) => a.name || a.username).join(", ")}
               icon={Icon.Person}
             />
           )}
@@ -245,7 +245,7 @@ function TaskItem({ task, projectName, onUpdate }: { task: VikunjaTask; projectN
 
   const accessories: List.Item.Accessory[] = [];
 
-  task.labels.slice(0, 2).forEach((l) => {
+  (task.labels ?? []).slice(0, 2).forEach((l) => {
     accessories.push({
       tag: {
         value: l.title,
