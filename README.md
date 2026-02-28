@@ -1,48 +1,32 @@
-# tasknotes-mcp
+# vikunja-raycast
 
-Raycast extension + Elysia backend + MCP server for managing tasks in an Obsidian vault via the TaskNotes plugin.
+Raycast extension for [Vikunja](https://vikunja.io) — list, create, and manage tasks directly from Raycast.
 
-## Components
+Talks directly to the self-hosted Vikunja instance at `vikunja.jkrumm.com`. No custom backend.
 
-- **server/** — Elysia (Bun) backend deployed at `tasknotes.jkrumm.com`
-- **server/src/mcp/** — MCP server at `/mcp` (mcp-lite, StreamableHTTP)
-- **raycast/** — Raycast extension, reads `apiBaseUrl` preference
+## Commands
 
-## MCP Tools
+| Command | Mode | Description |
+|-|-|-|
+| My Tasks | view | All open tasks with filtering, grouping, and full actions |
+| Create Task | view | Form-based task creation with project, labels, priority, due date |
+| Quick Add | no-view | Inline text → task, HUD confirmation |
+| Menu Bar | menu-bar | Overdue + today count in the menu bar |
 
-| Tool | Description |
-|-|-|
-| `list_tasks` | List tasks with optional status/priority/context/date filters |
-| `create_task` | Create a task with structured fields |
-| `update_task` | Update status, priority, or due date |
-| `toggle_task_status` | Toggle between open ↔ in-progress |
-| `nlp_create` | Parse natural language via Gemini and create task |
-| `get_filter_options` | Fetch live projects/contexts/tags from Obsidian |
-
-## Claude Code MCP Setup
+## Setup
 
 ```bash
-claude mcp add --transport http tasknotes https://tasknotes.jkrumm.com/mcp
+cd raycast
+npm install
+npm run dev
 ```
 
-No auth required — Tailscale handles network access.
+Set the **API Token** preference in Raycast (Preferences → Extensions → Vikunja). Generate a token at `vikunja.jkrumm.com/user/settings/token`.
 
-## Server Environment Variables
-
-| Variable | Default |
-|-|-|
-| `TASKNOTES_API_URL` | `http://obsidian:8087/api` |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | — |
-| `PORT` | `3000` |
-
-## Deploy
-
-CI builds a Docker image on push to `master` and deploys via rollhook. See `.github/workflows/ci.yml`.
-
-## Raycast Extension
-
-Set `apiBaseUrl` preference to `https://tasknotes.jkrumm.com` (default). Run with:
+## Development
 
 ```bash
-cd raycast && npm install && npm run dev
+npm run dev      # open extension in Raycast with hot reload
+npm run build    # production build
+npm run lint     # ESLint
 ```
