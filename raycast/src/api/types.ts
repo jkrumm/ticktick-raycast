@@ -53,6 +53,7 @@ export interface CreateTaskInput {
   title: string;
   projectId?: string;
   dueDate?: string | null;
+  isAllDay?: boolean;
   priority?: 0 | 1 | 3 | 5;
   content?: string;
   timeZone?: string;

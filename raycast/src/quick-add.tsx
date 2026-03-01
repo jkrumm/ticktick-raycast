@@ -14,12 +14,13 @@ import { TickTickProject } from "./api/types";
 import { parse } from "./lib/parse";
 import { formatDue, priorityLabel } from "./lib/format";
 
-// Berlin calendar date at midnight UTC — format expected by the API
+// Berlin calendar date at local midnight — matches how TickTick stores all-day dates
 function toApiAllDayDate(date: Date): string {
   const berlinDate = date.toLocaleDateString("sv-SE", {
     timeZone: "Europe/Berlin",
   });
-  return `${berlinDate}T00:00:00+0000`;
+  const [y, m, d] = berlinDate.split("-").map(Number);
+  return new Date(y, m - 1, d).toISOString();
 }
 
 export default function QuickAdd() {
@@ -76,6 +77,7 @@ export default function QuickAdd() {
         title,
         projectId,
         dueDate: parsed.dueDate ? toApiAllDayDate(parsed.dueDate) : undefined,
+        isAllDay: !!parsed.dueDate,
         timeZone: "Europe/Berlin",
         priority:
           parsed.priority > 0 ? (parsed.priority as 1 | 3 | 5) : undefined,

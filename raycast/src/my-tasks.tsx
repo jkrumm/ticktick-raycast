@@ -205,8 +205,8 @@ function TaskActions({
     });
     try {
       const dueDate = yyyymmdd ? toTickTickDate(yyyymmdd) : null;
-      await client.updateTask(task.id, { dueDate });
-      onPatch({ dueDate });
+      await client.updateTask(task.id, { dueDate, isAllDay: !!dueDate });
+      onPatch({ dueDate, isAllDay: !!dueDate });
       toast.style = Toast.Style.Success;
       toast.title = dueDate
         ? `Fällig: ${formatDue(dueDate)}`

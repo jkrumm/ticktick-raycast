@@ -75,6 +75,7 @@ export default function CreateTask({ task, onDone }: Props) {
           content: values.content.trim() || "",
           priority: Number(values.priority) as 0 | 1 | 3 | 5,
           dueDate: values.dueDate ? values.dueDate.toISOString() : null,
+          isAllDay: !!values.dueDate,
           projectId,
         });
       } else {
@@ -83,6 +84,7 @@ export default function CreateTask({ task, onDone }: Props) {
           content: values.content.trim() || undefined,
           priority: Number(values.priority) as 0 | 1 | 3 | 5,
           dueDate: values.dueDate ? values.dueDate.toISOString() : null,
+          isAllDay: !!values.dueDate,
           projectId,
           timeZone: "Europe/Berlin",
         });
