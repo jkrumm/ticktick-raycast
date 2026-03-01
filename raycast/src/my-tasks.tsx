@@ -4,6 +4,7 @@ import {
   Alert,
   Color,
   confirmAlert,
+  Detail,
   Icon,
   List,
   showToast,
@@ -67,7 +68,10 @@ function applyFilter(tasks: TickTickTask[], filter: string): TickTickTask[] {
       const end = daysFromNow(7);
       const todayStr = today();
       return tasks.filter(
-        (t) => !!t.dueDate && taskDate(t.dueDate) >= todayStr && taskDate(t.dueDate) <= end,
+        (t) =>
+          !!t.dueDate &&
+          taskDate(t.dueDate) >= todayStr &&
+          taskDate(t.dueDate) <= end,
       );
     }
     case "weekend": {
@@ -95,6 +99,47 @@ function applyFilter(tasks: TickTickTask[], filter: string): TickTickTask[] {
   }
 }
 
+// ─── Shortcuts Help ───────────────────────────────────────────────────────────
+
+const SHORTCUTS_MARKDOWN = `
+# TickTick Shortcuts
+
+## Aufgaben
+- \`↩\` Als erledigt markieren
+- \`⌘E\` Aufgabe bearbeiten
+- \`⌘↩\` In TickTick öffnen
+- \`⌃X\` Aufgabe löschen
+
+## Fälligkeit
+- \`⌘T\` Morgen
+- \`⌘S\` Nächste Woche (snooze +7 Tage)
+- \`⌘D\` Fälligkeit ändern _(heute · morgen · Wochenende · nächste Woche · kein Datum)_
+
+## Organisation
+- \`⌘U\` Priorität ändern _(hoch · mittel · niedrig · keine)_
+- \`⌘M\` Projekt wechseln
+
+## Navigation & Suche
+- \`⌘P\` Filter-Dropdown öffnen
+- \`⌘N\` Neue Aufgabe (Quick Add)
+- \`⌘R\` Aktualisieren
+- \`⌘H\` Diese Hilfe
+
+## Suchsyntax
+- \`#projekt\` Nach Projekt filtern
+- \`!h\` \`!m\` \`!l\` \`!n\` Priorität hoch · mittel · niedrig · keine
+- \`heute\` \`morgen\` \`wochenende\` Nach Fälligkeit filtern
+- \`überfällig\` \`kein datum\` \`woche\` Weitere Datumsfilter
+
+## Global (Raycast)
+- \`⌥Space\` Aufgabenliste öffnen
+- \`⌥A\` Quick Add öffnen
+`.trim();
+
+function ShortcutsHelp() {
+  return <Detail navigationTitle="Shortcuts" markdown={SHORTCUTS_MARKDOWN} />;
+}
+
 // ─── Task Actions ─────────────────────────────────────────────────────────────
 
 function TaskActions({
@@ -113,7 +158,10 @@ function TaskActions({
   const { push } = useNavigation();
 
   async function markComplete() {
-    const toast = await showToast({ style: Toast.Style.Animated, title: "Erledigt…" });
+    const toast = await showToast({
+      style: Toast.Style.Animated,
+      title: "Erledigt…",
+    });
     try {
       await client.completeTask(task.projectId, task.id);
       onRemove();
@@ -134,7 +182,10 @@ function TaskActions({
       primaryAction: { title: "Löschen", style: Alert.ActionStyle.Destructive },
     });
     if (!confirmed) return;
-    const toast = await showToast({ style: Toast.Style.Animated, title: "Wird gelöscht…" });
+    const toast = await showToast({
+      style: Toast.Style.Animated,
+      title: "Wird gelöscht…",
+    });
     try {
       await client.deleteTask(task.projectId, task.id);
       onRemove();
@@ -148,13 +199,18 @@ function TaskActions({
   }
 
   async function quickSetDue(yyyymmdd: string | null) {
-    const toast = await showToast({ style: Toast.Style.Animated, title: "Fälligkeit setzen…" });
+    const toast = await showToast({
+      style: Toast.Style.Animated,
+      title: "Fälligkeit setzen…",
+    });
     try {
       const dueDate = yyyymmdd ? toTickTickDate(yyyymmdd) : null;
       await client.updateTask(task.id, { dueDate });
       onPatch({ dueDate });
       toast.style = Toast.Style.Success;
-      toast.title = dueDate ? `Fällig: ${formatDue(dueDate)}` : "Datum entfernt";
+      toast.title = dueDate
+        ? `Fällig: ${formatDue(dueDate)}`
+        : "Datum entfernt";
     } catch (e) {
       toast.style = Toast.Style.Failure;
       toast.title = "Fehler";
@@ -163,7 +219,10 @@ function TaskActions({
   }
 
   async function quickSetPriority(priority: 0 | 1 | 3 | 5) {
-    const toast = await showToast({ style: Toast.Style.Animated, title: "Priorität setzen…" });
+    const toast = await showToast({
+      style: Toast.Style.Animated,
+      title: "Priorität setzen…",
+    });
     try {
       await client.updateTask(task.id, { priority });
       onPatch({ priority });
@@ -177,7 +236,10 @@ function TaskActions({
   }
 
   async function quickMoveToProject(projectId: string) {
-    const toast = await showToast({ style: Toast.Style.Animated, title: "Verschieben…" });
+    const toast = await showToast({
+      style: Toast.Style.Animated,
+      title: "Verschieben…",
+    });
     try {
       await client.updateTask(task.id, { projectId });
       onPatch({ projectId });
@@ -194,18 +256,18 @@ function TaskActions({
     <ActionPanel>
       <ActionPanel.Section>
         <Action
-          title="Als erledigt markieren"
+          title="Als Erledigt Markieren"
           icon={{ source: Icon.Checkmark, tintColor: Color.Green }}
           onAction={markComplete}
         />
         <Action
-          title="Aufgabe bearbeiten"
+          title="Aufgabe Bearbeiten"
           icon={Icon.Pencil}
           shortcut={{ modifiers: ["cmd"], key: "e" }}
           onAction={() => push(<CreateTask task={task} onDone={onRefresh} />)}
         />
         <Action.OpenInBrowser
-          title="In TickTick öffnen"
+          title="In Ticktick Öffnen"
           url={`https://ticktick.com/webapp/#q/today/tasks/${task.id}`}
           shortcut={{ modifiers: ["cmd"], key: "return" }}
         />
@@ -217,23 +279,49 @@ function TaskActions({
           shortcut={{ modifiers: ["cmd"], key: "t" }}
           onAction={() => quickSetDue(daysFromNow(1))}
         />
+        <Action
+          title="Nächste Woche"
+          icon={Icon.Clock}
+          shortcut={{ modifiers: ["cmd"], key: "s" }}
+          onAction={() => quickSetDue(daysFromNow(7))}
+        />
         <ActionPanel.Submenu
-          title="Fälligkeit ändern"
+          title="Fälligkeit Ändern"
           icon={Icon.Calendar}
           shortcut={{ modifiers: ["cmd"], key: "d" }}
         >
-          <Action title="Heute" icon={Icon.Circle} onAction={() => quickSetDue(today())} />
-          <Action title="Morgen" icon={Icon.ArrowRight} onAction={() => quickSetDue(daysFromNow(1))} />
-          <Action title="Wochenende (Sa)" icon={Icon.Calendar} onAction={() => quickSetDue(nextSaturday())} />
-          <Action title="Nächste Woche" icon={Icon.Clock} onAction={() => quickSetDue(daysFromNow(7))} />
-          <Action title="Kein Datum" icon={Icon.Minus} onAction={() => quickSetDue(null)} />
+          <Action
+            title="Heute"
+            icon={Icon.Circle}
+            onAction={() => quickSetDue(today())}
+          />
+          <Action
+            title="Morgen"
+            icon={Icon.ArrowRight}
+            onAction={() => quickSetDue(daysFromNow(1))}
+          />
+          <Action
+            title="Wochenende (sa)"
+            icon={Icon.Calendar}
+            onAction={() => quickSetDue(nextSaturday())}
+          />
+          <Action
+            title="Nächste Woche"
+            icon={Icon.Clock}
+            onAction={() => quickSetDue(daysFromNow(7))}
+          />
+          <Action
+            title="Kein Datum"
+            icon={Icon.Minus}
+            onAction={() => quickSetDue(null)}
+          />
         </ActionPanel.Submenu>
       </ActionPanel.Section>
       <ActionPanel.Section>
         <ActionPanel.Submenu
-          title="Priorität ändern"
+          title="Priorität Ändern"
           icon={Icon.Flag}
-          shortcut={{ modifiers: ["cmd"], key: "p" }}
+          shortcut={{ modifiers: ["cmd"], key: "u" }}
         >
           <Action
             title="Hoch"
@@ -257,14 +345,18 @@ function TaskActions({
           />
         </ActionPanel.Submenu>
         <ActionPanel.Submenu
-          title="Projekt wechseln"
+          title="Projekt Wechseln"
           icon={Icon.List}
           shortcut={{ modifiers: ["cmd"], key: "m" }}
         >
           {projects
             .filter((p) => p.id !== task.projectId)
             .map((p) => (
-              <Action key={p.id} title={p.name} onAction={() => quickMoveToProject(p.id)} />
+              <Action
+                key={p.id}
+                title={p.name}
+                onAction={() => quickMoveToProject(p.id)}
+              />
             ))}
         </ActionPanel.Submenu>
       </ActionPanel.Section>
@@ -281,10 +373,16 @@ function TaskActions({
           shortcut={{ modifiers: ["cmd"], key: "r" }}
           onAction={onRefresh}
         />
+        <Action
+          title="Shortcuts Anzeigen"
+          icon={Icon.QuestionMark}
+          shortcut={{ modifiers: ["cmd"], key: "h" }}
+          onAction={() => push(<ShortcutsHelp />)}
+        />
       </ActionPanel.Section>
       <ActionPanel.Section>
         <Action
-          title="Aufgabe löschen"
+          title="Aufgabe Löschen"
           icon={Icon.Trash}
           style={Action.Style.Destructive}
           shortcut={{ modifiers: ["ctrl"], key: "x" }}
@@ -325,7 +423,8 @@ function TaskItem({
     { tag: { value: due ?? " ", color: priorityColor(task.priority) } },
   ];
 
-  const icon = projectInitial !== null ? projectInitial : priorityIcon(task.priority);
+  const icon =
+    projectInitial !== null ? projectInitial : priorityIcon(task.priority);
 
   return (
     <List.Item
@@ -394,8 +493,12 @@ export default function MyTasks() {
   const { data, isLoading, revalidate, mutate } = useCachedPromise(
     async (): Promise<CachedData> => {
       const projects = await client.getProjects();
-      const results = await Promise.all(projects.map((p) => client.getProjectData(p.id)));
-      const tasks = results.flatMap((r) => r.tasks).filter((t) => t.status === 0);
+      const results = await Promise.all(
+        projects.map((p) => client.getProjectData(p.id)),
+      );
+      const tasks = results
+        .flatMap((r) => r.tasks)
+        .filter((t) => t.status === 0);
       return { projects, tasks: sortTasks(tasks) };
     },
     [],
@@ -421,16 +524,27 @@ export default function MyTasks() {
 
   const grouped = useMemo<Map<DueBucket, TickTickTask[]> | null>(() => {
     if (!showGrouped) return null;
-    const map = new Map<DueBucket, TickTickTask[]>(BUCKET_ORDER.map((b) => [b, []]));
-    for (const task of displayTasks) map.get(dueBucket(task.dueDate))!.push(task);
+    const map = new Map<DueBucket, TickTickTask[]>(
+      BUCKET_ORDER.map((b) => [b, []]),
+    );
+    for (const task of displayTasks)
+      map.get(dueBucket(task.dueDate))!.push(task);
     return map;
   }, [displayTasks, showGrouped]);
 
   function patchTask(taskId: string, changes: Partial<TickTickTask>) {
     mutate(undefined, {
       optimisticUpdate: (current): CachedData => {
-        const safe = (current as CachedData | undefined) ?? { projects: [], tasks: [] };
-        return { ...safe, tasks: sortTasks(safe.tasks.map((t) => (t.id === taskId ? { ...t, ...changes } : t))) };
+        const safe = (current as CachedData | undefined) ?? {
+          projects: [],
+          tasks: [],
+        };
+        return {
+          ...safe,
+          tasks: sortTasks(
+            safe.tasks.map((t) => (t.id === taskId ? { ...t, ...changes } : t)),
+          ),
+        };
       },
       shouldRevalidateAfter: false,
     });
@@ -439,7 +553,10 @@ export default function MyTasks() {
   function removeTask(taskId: string) {
     mutate(undefined, {
       optimisticUpdate: (current): CachedData => {
-        const safe = (current as CachedData | undefined) ?? { projects: [], tasks: [] };
+        const safe = (current as CachedData | undefined) ?? {
+          projects: [],
+          tasks: [],
+        };
         return { ...safe, tasks: safe.tasks.filter((t) => t.id !== taskId) };
       },
       shouldRevalidateAfter: false,
@@ -470,15 +587,39 @@ export default function MyTasks() {
       searchBarAccessory={
         <List.Dropdown tooltip="Filter" value={filter} onChange={setFilter}>
           <List.Dropdown.Section title="Ansicht">
-            <List.Dropdown.Item value="all" title="Alle offen" icon={Icon.Circle} />
+            <List.Dropdown.Item
+              value="all"
+              title="Alle offen"
+              icon={Icon.Circle}
+            />
           </List.Dropdown.Section>
           <List.Dropdown.Section title="Fälligkeit">
             <List.Dropdown.Item value="today" title="Heute" icon={Icon.Clock} />
-            <List.Dropdown.Item value="overdue" title="Überfällig" icon={Icon.ExclamationMark} />
-            <List.Dropdown.Item value="tomorrow" title="Morgen" icon={Icon.ArrowRight} />
-            <List.Dropdown.Item value="week" title="Diese Woche" icon={Icon.Calendar} />
-            <List.Dropdown.Item value="weekend" title="Wochenende" icon={Icon.Calendar} />
-            <List.Dropdown.Item value="no-date" title="Kein Datum" icon={Icon.Minus} />
+            <List.Dropdown.Item
+              value="overdue"
+              title="Überfällig"
+              icon={Icon.ExclamationMark}
+            />
+            <List.Dropdown.Item
+              value="tomorrow"
+              title="Morgen"
+              icon={Icon.ArrowRight}
+            />
+            <List.Dropdown.Item
+              value="week"
+              title="Diese Woche"
+              icon={Icon.Calendar}
+            />
+            <List.Dropdown.Item
+              value="weekend"
+              title="Wochenende"
+              icon={Icon.Calendar}
+            />
+            <List.Dropdown.Item
+              value="no-date"
+              title="Kein Datum"
+              icon={Icon.Minus}
+            />
           </List.Dropdown.Section>
           <List.Dropdown.Section title="Priorität">
             <List.Dropdown.Item
@@ -522,7 +663,11 @@ export default function MyTasks() {
             const bucketTasks = grouped.get(bucket) ?? [];
             if (bucketTasks.length === 0) return null;
             return (
-              <List.Section key={bucket} title={BUCKET_TITLE[bucket]} subtitle={`${bucketTasks.length}`}>
+              <List.Section
+                key={bucket}
+                title={BUCKET_TITLE[bucket]}
+                subtitle={`${bucketTasks.length}`}
+              >
                 {bucketTasks.map(renderTask)}
               </List.Section>
             );

@@ -16,7 +16,9 @@ export function daysFromNow(n: number): string {
 // 2026-03-01 is sent as "2026-02-28T23:00:00.000+0000"), so we must convert to
 // the local Berlin date before comparing — never just slice the first 10 chars.
 export function taskDate(due: string): string {
-  return new Date(due).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
+  return new Date(due).toLocaleDateString("sv-SE", {
+    timeZone: "Europe/Berlin",
+  });
 }
 
 // Convert YYYY-MM-DD to a TickTick-compatible ISO string (midnight local time).

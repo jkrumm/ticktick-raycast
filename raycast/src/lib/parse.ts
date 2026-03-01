@@ -76,9 +76,6 @@ function extractStartProject(
   return { project: null, text: input };
 }
 
-// Custom chrono refiners for German date formats: DD.MM, DD.MM.YY, DD.MM.YYYY
-const germanDateCasual = chrono.de.casual.clone();
-
 // Prepend a custom parser for DD.MM[.YY[YY]] before chrono runs
 function parseGermanDateLiteral(text: string, refDate: Date): Date | null {
   const match = text.match(/\b(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?\b/);

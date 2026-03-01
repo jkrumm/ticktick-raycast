@@ -1,11 +1,25 @@
 import { TickTickProject, TickTickTask } from "../api/types";
-import { today, daysFromNow, taskDate, isOverdue, isDueToday, isDueTomorrow } from "./format";
+import {
+  today,
+  daysFromNow,
+  taskDate,
+  isOverdue,
+  isDueToday,
+  isDueTomorrow,
+} from "./format";
 
 export interface SearchQuery {
   text: string;
   projectFilter: string | null;
   priorityFilter: number | null;
-  dateFilter: "today" | "tomorrow" | "weekend" | "overdue" | "no-date" | "week" | null;
+  dateFilter:
+    | "today"
+    | "tomorrow"
+    | "weekend"
+    | "overdue"
+    | "no-date"
+    | "week"
+    | null;
 }
 
 export function parseSearch(raw: string): SearchQuery {
@@ -63,7 +77,9 @@ export function applySearch(
 
   if (query.projectFilter) {
     const pf = query.projectFilter;
-    result = result.filter((t) => projectMap[t.projectId]?.name.toLowerCase().includes(pf));
+    result = result.filter((t) =>
+      projectMap[t.projectId]?.name.toLowerCase().includes(pf),
+    );
   }
 
   if (query.priorityFilter !== null) {
@@ -97,7 +113,10 @@ export function applySearch(
       case "week": {
         const end = daysFromNow(7);
         result = result.filter(
-          (t) => !!t.dueDate && taskDate(t.dueDate) >= todayStr && taskDate(t.dueDate) <= end,
+          (t) =>
+            !!t.dueDate &&
+            taskDate(t.dueDate) >= todayStr &&
+            taskDate(t.dueDate) <= end,
         );
         break;
       }

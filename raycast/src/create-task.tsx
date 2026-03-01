@@ -136,15 +136,27 @@ export default function CreateTask({ task, onDone }: Props) {
 
       <Form.Separator />
 
-      <Form.Dropdown id="projectId" title="Projekt" defaultValue={defaultProjectId}>
+      <Form.Dropdown
+        id="projectId"
+        title="Projekt"
+        defaultValue={defaultProjectId}
+      >
         {projectList.map((p) => (
           <Form.Dropdown.Item key={p.id} value={p.id} title={p.name} />
         ))}
       </Form.Dropdown>
 
-      <Form.Dropdown id="priority" title="Priorität" defaultValue={String(task?.priority ?? 0)}>
+      <Form.Dropdown
+        id="priority"
+        title="Priorität"
+        defaultValue={String(task?.priority ?? 0)}
+      >
         {([0, 1, 3, 5] as const).map((p) => (
-          <Form.Dropdown.Item key={p} value={String(p)} title={priorityLabel(p)} />
+          <Form.Dropdown.Item
+            key={p}
+            value={String(p)}
+            title={priorityLabel(p)}
+          />
         ))}
       </Form.Dropdown>
 

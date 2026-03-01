@@ -16,7 +16,9 @@ import { formatDue, priorityLabel } from "./lib/format";
 
 // Berlin calendar date at midnight UTC — format expected by the API
 function toApiAllDayDate(date: Date): string {
-  const berlinDate = date.toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
+  const berlinDate = date.toLocaleDateString("sv-SE", {
+    timeZone: "Europe/Berlin",
+  });
   return `${berlinDate}T00:00:00+0000`;
 }
 
@@ -27,10 +29,12 @@ export default function QuickAdd() {
 
   const base = prefs().baseUrl.replace(/\/$/, "");
 
-  const { data: projectsRaw, isLoading } = useFetch<{ data: TickTickProject[] }>(
-    `${base}/api/ticktick/projects`,
-    { headers: authHeader(), keepPreviousData: true },
-  );
+  const { data: projectsRaw, isLoading } = useFetch<{
+    data: TickTickProject[];
+  }>(`${base}/api/ticktick/projects`, {
+    headers: authHeader(),
+    keepPreviousData: true,
+  });
 
   const projects = projectsRaw?.data ?? [];
   const defaultProjectId = prefs().defaultProjectId ?? projects[0]?.id ?? "";
@@ -39,12 +43,17 @@ export default function QuickAdd() {
 
   const resolvedProject =
     parsed.project ??
-    (defaultProjectId ? projects.find((p) => p.id === defaultProjectId) : null) ??
+    (defaultProjectId
+      ? projects.find((p) => p.id === defaultProjectId)
+      : null) ??
     null;
 
   const dateLabel = parsed.dueDate
     ? (formatDue(parsed.dueDate.toISOString()) ??
-      parsed.dueDate.toLocaleDateString("de-DE", { day: "numeric", month: "long" }))
+      parsed.dueDate.toLocaleDateString("de-DE", {
+        day: "numeric",
+        month: "long",
+      }))
     : null;
 
   async function handleSubmit() {
@@ -68,13 +77,18 @@ export default function QuickAdd() {
         projectId,
         dueDate: parsed.dueDate ? toApiAllDayDate(parsed.dueDate) : undefined,
         timeZone: "Europe/Berlin",
-        priority: parsed.priority > 0 ? (parsed.priority as 1 | 3 | 5) : undefined,
+        priority:
+          parsed.priority > 0 ? (parsed.priority as 1 | 3 | 5) : undefined,
         content: note.trim() || undefined,
       });
       await showHUD(`Hinzugefuegt: ${title}`);
       await popToRoot();
     } catch (e) {
-      await showToast({ style: Toast.Style.Failure, title: "Fehler", message: String(e) });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Fehler",
+        message: String(e),
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -86,7 +100,7 @@ export default function QuickAdd() {
       isLoading={isSubmitting || isLoading}
       actions={
         <ActionPanel>
-          <Action title="Aufgabe hinzufügen" onAction={handleSubmit} />
+          <Action title="Aufgabe Hinzufügen" onAction={handleSubmit} />
         </ActionPanel>
       }
     >
@@ -103,8 +117,14 @@ export default function QuickAdd() {
 
       <Form.Description title="Projekt" text={resolvedProject?.name ?? "—"} />
       <Form.Description title="Datum" text={dateLabel ?? "—"} />
-      <Form.Description title="Priorität" text={parsed.priority > 0 ? priorityLabel(parsed.priority) : "—"} />
-      <Form.Description title="Titel" text={parsed.title || (input ? input : "—")} />
+      <Form.Description
+        title="Priorität"
+        text={parsed.priority > 0 ? priorityLabel(parsed.priority) : "—"}
+      />
+      <Form.Description
+        title="Titel"
+        text={parsed.title || (input ? input : "—")}
+      />
 
       <Form.Separator />
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { parse } from "./parse";
 import { TickTickProject } from "../api/types";
 
@@ -6,10 +6,50 @@ import { TickTickProject } from "../api/types";
 const REF_DATE = new Date("2026-03-01T12:00:00+01:00");
 
 const PROJECTS: TickTickProject[] = [
-  { id: "1", name: "Homelab", color: "#red", sortOrder: 0, closed: null, groupId: null, viewMode: "list", permission: "write", kind: "TASK" },
-  { id: "2", name: "Finance", color: "#green", sortOrder: 1, closed: null, groupId: null, viewMode: "list", permission: "write", kind: "TASK" },
-  { id: "3", name: "Shopping", color: "#blue", sortOrder: 2, closed: null, groupId: null, viewMode: "list", permission: "write", kind: "TASK" },
-  { id: "4", name: "Work", color: "#purple", sortOrder: 3, closed: null, groupId: null, viewMode: "list", permission: "write", kind: "TASK" },
+  {
+    id: "1",
+    name: "Homelab",
+    color: "#red",
+    sortOrder: 0,
+    closed: null,
+    groupId: null,
+    viewMode: "list",
+    permission: "write",
+    kind: "TASK",
+  },
+  {
+    id: "2",
+    name: "Finance",
+    color: "#green",
+    sortOrder: 1,
+    closed: null,
+    groupId: null,
+    viewMode: "list",
+    permission: "write",
+    kind: "TASK",
+  },
+  {
+    id: "3",
+    name: "Shopping",
+    color: "#blue",
+    sortOrder: 2,
+    closed: null,
+    groupId: null,
+    viewMode: "list",
+    permission: "write",
+    kind: "TASK",
+  },
+  {
+    id: "4",
+    name: "Work",
+    color: "#purple",
+    sortOrder: 3,
+    closed: null,
+    groupId: null,
+    viewMode: "list",
+    permission: "write",
+    kind: "TASK",
+  },
 ];
 
 function parseAt(input: string, refDate = REF_DATE) {
@@ -21,11 +61,13 @@ function parseAt(input: string, refDate = REF_DATE) {
       if (args.length === 0) {
         super(refDate.getTime());
       } else {
-        // @ts-ignore spread into Date constructor
+        // @ts-expect-error spread into Date constructor
         super(...args);
       }
     }
-    static now() { return refDate.getTime(); }
+    static now() {
+      return refDate.getTime();
+    }
   } as unknown as typeof Date;
   globalThis.Date = MockDate;
   try {
@@ -378,7 +420,7 @@ describe("edge cases", () => {
 
   it("title cleanup — no double spaces", () => {
     const r = parseAt("task   morgen   fix");
-    expect(r.title).not.toMatch(/  /);
+    expect(r.title).not.toMatch(/ {2}/);
   });
 
   it("project name with partial match still works", () => {
