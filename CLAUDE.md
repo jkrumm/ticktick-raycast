@@ -1,17 +1,18 @@
-# vikunja-raycast
+# ticktick-raycast
 
-Raycast extension for Vikunja task management. Direct API integration — no custom backend.
+Raycast extension for TickTick task management via HomeLab proxy. No direct TickTick OAuth — all auth is absorbed by the proxy.
 
 ## Context
 
 - **README.md** — project overview, setup, command list
-- **docs/architecture.md** — data flow, caching strategy, priority mapping, command structure
-- **.claude/skills/vikunja-api/SKILL.md** — Vikunja API reference (endpoints, task model, filter syntax)
+- **.claude/skills/ticktick-api/SKILL.md** — HomeLab proxy API reference (endpoints, task model, auth)
 - **.claude/skills/raycast-extension/SKILL.md** — Raycast component and hook reference
 
 ## Key Facts
 
-- Vikunja API: `https://vikunja.jkrumm.com/api/v1`
+- HomeLab proxy: `https://api.jkrumm.com/api/ticktick/*`
 - Auth: Bearer token in Raycast preferences (`apiToken`)
 - Extension source: `raycast/src/`
-- No backend — Raycast talks directly to Vikunja
+- Tasks are loaded per-project via `GET /api/ticktick/project/{id}/data`
+- Priority scale: 0=None, 1=Low, 3=Medium, 5=High (no 2 or 4)
+- New dependencies: `chrono-node` (NL date parsing), `similarity` (fuzzy project matching)

@@ -1,6 +1,6 @@
 ---
 name: raycast-extension
-description: Raycast extension development reference — command modes, UI components, hooks, APIs, and patterns for building the Vikunja extension
+description: Raycast extension development reference — command modes, UI components, hooks, APIs, and patterns for building the TickTick extension
 agent: general-purpose
 ---
 

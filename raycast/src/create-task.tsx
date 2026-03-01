@@ -1,12 +1,20 @@
-import { Action, ActionPanel, Form, showHUD, showToast, Toast, useNavigation } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Form,
+  showHUD,
+  showToast,
+  Toast,
+  useNavigation,
+} from "@raycast/api";
 import { useFetch } from "@raycast/utils";
 import { useState } from "react";
-import { apiBase, authHeader, client, prefs } from "./api/client";
-import { VikunjaLabel, VikunjaProject, VikunjaTask } from "./api/types";
+import { authHeader, client, prefs } from "./api/client";
+import { TickTickProject, TickTickTask } from "./api/types";
 import { priorityLabel } from "./lib/format";
 
 interface Props {
-  task?: VikunjaTask;
+  task?: TickTickTask;
   onDone?: () => void;
 }
 
@@ -15,72 +23,83 @@ export default function CreateTask({ task, onDone }: Props) {
   const isEditing = !!task;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: projects } = useFetch<VikunjaProject[]>(`${apiBase()}/projects?per_page=500`, {
-    headers: authHeader(),
-    keepPreviousData: true,
-  });
+  const base = prefs().baseUrl.replace(/\/$/, "");
 
-  const { data: labels } = useFetch<VikunjaLabel[]>(`${apiBase()}/labels?per_page=500`, {
-    headers: authHeader(),
-    keepPreviousData: true,
-  });
+  const { data: projectsRaw } = useFetch<{ data: TickTickProject[] }>(
+    `${base}/api/ticktick/projects`,
+    {
+      headers: authHeader(),
+      keepPreviousData: true,
+    },
+  );
 
-  const projectList = projects ?? [];
-  const labelList = labels ?? [];
+  const projectList = projectsRaw?.data ?? [];
 
   const defaultProjectId = (() => {
-    if (task) return String(task.project_id);
+    if (task) return task.projectId;
     const pref = prefs().defaultProjectId;
     if (pref) return pref;
-    return projectList[0] ? String(projectList[0].id) : "";
+    return projectList[0]?.id ?? "";
   })();
 
   async function handleSubmit(values: {
     title: string;
-    description: string;
-    project_id: string;
+    content: string;
+    projectId: string;
     priority: string;
-    due_date: Date | null;
-    labels: string[];
-    is_favorite: boolean;
+    dueDate: Date | null;
   }) {
     if (!values.title.trim()) {
-      await showToast({ style: Toast.Style.Failure, title: "Title is required" });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Titel erforderlich",
+      });
       return;
     }
 
-    const projectId = parseInt(values.project_id || defaultProjectId);
+    const projectId = values.projectId || defaultProjectId;
     if (!projectId) {
-      await showToast({ style: Toast.Style.Failure, title: "Select a project" });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Projekt auswählen",
+      });
       return;
     }
 
     setIsSubmitting(true);
-
-    const payload: Partial<VikunjaTask> = {
-      title: values.title.trim(),
-      description: values.description.trim() || undefined,
-      priority: parseInt(values.priority),
-      due_date: values.due_date ? values.due_date.toISOString() : null,
-      is_favorite: values.is_favorite,
-    };
-
     try {
-      let savedTask: VikunjaTask;
+      let savedTask: TickTickTask;
       if (isEditing) {
-        savedTask = await client.updateTask(task.id, payload);
-        await client.setLabels(task.id, values.labels.map(Number));
+        savedTask = await client.updateTask(task.id, {
+          title: values.title.trim(),
+          content: values.content.trim() || "",
+          priority: Number(values.priority) as 0 | 1 | 3 | 5,
+          dueDate: values.dueDate ? values.dueDate.toISOString() : null,
+          projectId,
+        });
       } else {
-        savedTask = await client.createTask(projectId, payload);
-        if (values.labels.length > 0) {
-          await client.setLabels(savedTask.id, values.labels.map(Number));
-        }
+        savedTask = await client.createTask({
+          title: values.title.trim(),
+          content: values.content.trim() || undefined,
+          priority: Number(values.priority) as 0 | 1 | 3 | 5,
+          dueDate: values.dueDate ? values.dueDate.toISOString() : null,
+          projectId,
+          timeZone: "Europe/Berlin",
+        });
       }
-      await showHUD(isEditing ? `Updated: ${savedTask.title}` : `Created: ${savedTask.title}`);
+      await showHUD(
+        isEditing
+          ? `Aktualisiert: ${savedTask.title}`
+          : `Erstellt: ${savedTask.title}`,
+      );
       onDone?.();
       pop();
     } catch (e) {
-      await showToast({ style: Toast.Style.Failure, title: "Failed", message: String(e) });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Fehler",
+        message: String(e),
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -88,60 +107,53 @@ export default function CreateTask({ task, onDone }: Props) {
 
   return (
     <Form
-      navigationTitle={isEditing ? "Edit Task" : "Create Task"}
+      navigationTitle={isEditing ? "Aufgabe bearbeiten" : "Aufgabe erstellen"}
       isLoading={isSubmitting || projectList.length === 0}
       actions={
         <ActionPanel>
-          <Action.SubmitForm title={isEditing ? "Save Changes" : "Create Task"} onSubmit={handleSubmit} />
+          <Action.SubmitForm
+            title={isEditing ? "Speichern" : "Erstellen"}
+            onSubmit={handleSubmit}
+          />
         </ActionPanel>
       }
     >
       <Form.TextField
         id="title"
-        title="Title"
-        placeholder="What needs to be done?"
+        title="Titel"
+        placeholder="Was ist zu tun?"
         defaultValue={task?.title ?? ""}
         autoFocus
       />
 
       <Form.TextArea
-        id="description"
-        title="Description"
-        placeholder="Add details, links, or context… (Markdown supported)"
-        defaultValue={task?.description ?? ""}
+        id="content"
+        title="Notizen"
+        placeholder="Details, Links oder Kontext… (Markdown)"
+        defaultValue={task?.content ?? ""}
         enableMarkdown
       />
 
       <Form.Separator />
 
-      <Form.Dropdown id="project_id" title="Project" defaultValue={defaultProjectId}>
+      <Form.Dropdown id="projectId" title="Projekt" defaultValue={defaultProjectId}>
         {projectList.map((p) => (
-          <Form.Dropdown.Item key={p.id} value={String(p.id)} title={p.title} />
+          <Form.Dropdown.Item key={p.id} value={p.id} title={p.name} />
         ))}
       </Form.Dropdown>
 
-      <Form.Dropdown id="priority" title="Priority" defaultValue={String(task?.priority ?? 0)}>
-        {([0, 1, 2, 3, 4, 5] as const).map((p) => (
+      <Form.Dropdown id="priority" title="Priorität" defaultValue={String(task?.priority ?? 0)}>
+        {([0, 1, 3, 5] as const).map((p) => (
           <Form.Dropdown.Item key={p} value={String(p)} title={priorityLabel(p)} />
         ))}
       </Form.Dropdown>
 
       <Form.DatePicker
-        id="due_date"
-        title="Due Date"
+        id="dueDate"
+        title="Fälligkeit"
         type={Form.DatePicker.Type.Date}
-        defaultValue={task?.due_date ? new Date(task.due_date) : null}
+        defaultValue={task?.dueDate ? new Date(task.dueDate) : null}
       />
-
-      {labelList.length > 0 && (
-        <Form.TagPicker id="labels" title="Labels" defaultValue={(task?.labels ?? []).map((l) => String(l.id))}>
-          {labelList.map((l) => (
-            <Form.TagPicker.Item key={l.id} value={String(l.id)} title={l.title} />
-          ))}
-        </Form.TagPicker>
-      )}
-
-      <Form.Checkbox id="is_favorite" label="Mark as favorite" defaultValue={task?.is_favorite ?? false} />
     </Form>
   );
 }

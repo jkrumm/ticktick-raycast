@@ -8,11 +8,11 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 type ExtensionPreferences = {
-  /** API Token - Bearer token from vikunja.jkrumm.com/user/settings/token */
+  /** API Token - Bearer token for the HomeLab TickTick proxy at api.jkrumm.com */
   "apiToken": string,
-  /** Vikunja URL - Base URL of your Vikunja instance */
+  /** API Base URL - HomeLab proxy base URL */
   "baseUrl": string,
-  /** Default Project ID - Project used for Quick Add (optional) */
+  /** Default Project ID - Project used when Quick Add cannot match a project (optional) */
   "defaultProjectId"?: string
 }
 
@@ -22,8 +22,6 @@ declare type Preferences = ExtensionPreferences
 declare namespace Preferences {
   /** Preferences accessible in the `my-tasks` command */
   export type MyTasks = ExtensionPreferences & {}
-  /** Preferences accessible in the `create-task` command */
-  export type CreateTask = ExtensionPreferences & {}
   /** Preferences accessible in the `quick-add` command */
   export type QuickAdd = ExtensionPreferences & {}
   /** Preferences accessible in the `menu-bar` command */
@@ -33,8 +31,6 @@ declare namespace Preferences {
 declare namespace Arguments {
   /** Arguments passed to the `my-tasks` command */
   export type MyTasks = {}
-  /** Arguments passed to the `create-task` command */
-  export type CreateTask = {}
   /** Arguments passed to the `quick-add` command */
   export type QuickAdd = {}
   /** Arguments passed to the `menu-bar` command */

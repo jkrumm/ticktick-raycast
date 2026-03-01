@@ -1,17 +1,36 @@
 import { Color, Icon } from "@raycast/api";
 
 export function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 export function daysFromNow(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function taskDate(due: string): string {
-  return due.slice(0, 10);
+// Parse TickTick ISO date string into a YYYY-MM-DD string in Europe/Berlin timezone.
+// TickTick stores all-day tasks as local-midnight UTC (e.g. a Berlin task due
+// 2026-03-01 is sent as "2026-02-28T23:00:00.000+0000"), so we must convert to
+// the local Berlin date before comparing — never just slice the first 10 chars.
+export function taskDate(due: string): string {
+  return new Date(due).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
+}
+
+// Convert YYYY-MM-DD to a TickTick-compatible ISO string (midnight local time).
+export function toTickTickDate(yyyymmdd: string): string {
+  const [y, m, d] = yyyymmdd.split("-").map(Number);
+  return new Date(y, m - 1, d).toISOString();
+}
+
+// Next Saturday from today (returns today if already Saturday).
+export function nextSaturday(): string {
+  const d = new Date();
+  const daysUntilSat = (6 - d.getDay() + 7) % 7;
+  d.setDate(d.getDate() + daysUntilSat);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 export function isOverdue(due: string | null): boolean {
@@ -22,19 +41,29 @@ export function isDueToday(due: string | null): boolean {
   return !!due && taskDate(due) === today();
 }
 
+export function isDueTomorrow(due: string | null): boolean {
+  return !!due && taskDate(due) === daysFromNow(1);
+}
+
 export function formatDue(due: string | null): string | null {
   if (!due) return null;
   const d = taskDate(due);
   const t = today();
   if (d < t) {
     const days = Math.round((Date.parse(t) - Date.parse(d)) / 86400000);
-    return days === 1 ? "Yesterday" : `${days}d overdue`;
+    return days === 1 ? "Gestern" : `${days}T. überfällig`;
   }
-  if (d === t) return "Today";
-  if (d === daysFromNow(1)) return "Tomorrow";
+  if (d === t) return "Heute";
+  if (d === daysFromNow(1)) return "Morgen";
   const diff = Math.round((Date.parse(d) - Date.parse(t)) / 86400000);
-  if (diff <= 7) return new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" });
-  return new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (diff <= 7)
+    return new Date(d + "T12:00:00").toLocaleDateString("de-DE", {
+      weekday: "short",
+    });
+  return new Date(d + "T12:00:00").toLocaleDateString("de-DE", {
+    day: "numeric",
+    month: "short",
+  });
 }
 
 export function dueDateColor(due: string | null): Color {
@@ -43,32 +72,38 @@ export function dueDateColor(due: string | null): Color {
   return Color.SecondaryText;
 }
 
-// ─── Priority ────────────────────────────────────────────────────────────────
+// ─── Priority (TickTick scale: 0=None, 1=Low, 3=Medium, 5=High) ──────────────
 
 export function priorityIcon(p: number): { source: Icon; tintColor: Color } {
-  if (p >= 5) return { source: Icon.ExclamationMark, tintColor: Color.Red };
-  if (p >= 4) return { source: Icon.ArrowUp, tintColor: Color.Red };
-  if (p >= 3) return { source: Icon.ArrowUp, tintColor: Color.Orange };
-  if (p >= 2) return { source: Icon.Minus, tintColor: Color.Yellow };
-  if (p >= 1) return { source: Icon.ArrowDown, tintColor: Color.Blue };
+  if (p >= 5) return { source: Icon.Circle, tintColor: Color.Red };
+  if (p >= 3) return { source: Icon.Circle, tintColor: Color.Orange };
+  if (p >= 1) return { source: Icon.Circle, tintColor: Color.Blue };
   return { source: Icon.Circle, tintColor: Color.SecondaryText };
 }
 
 export function priorityLabel(p: number): string {
-  return (["No priority", "Low", "Medium", "High", "Very high", "Urgent"] as const)[Math.min(p, 5)] ?? "No priority";
+  if (p >= 5) return "Hoch";
+  if (p >= 3) return "Mittel";
+  if (p >= 1) return "Niedrig";
+  return "Keine";
 }
 
 export function priorityColor(p: number): Color {
-  if (p >= 4) return Color.Red;
-  if (p === 3) return Color.Orange;
-  if (p === 2) return Color.Yellow;
-  if (p === 1) return Color.Blue;
+  if (p >= 5) return Color.Red;
+  if (p >= 3) return Color.Orange;
+  if (p >= 1) return Color.Blue;
   return Color.SecondaryText;
 }
 
 // ─── Grouping ─────────────────────────────────────────────────────────────────
 
-export type DueBucket = "overdue" | "today" | "tomorrow" | "this-week" | "later" | "no-date";
+export type DueBucket =
+  | "overdue"
+  | "today"
+  | "tomorrow"
+  | "this-week"
+  | "later"
+  | "no-date";
 
 export function dueBucket(due: string | null): DueBucket {
   if (!due) return "no-date";
@@ -82,12 +117,19 @@ export function dueBucket(due: string | null): DueBucket {
 }
 
 export const BUCKET_TITLE: Record<DueBucket, string> = {
-  overdue: "Overdue",
-  today: "Today",
-  tomorrow: "Tomorrow",
-  "this-week": "This Week",
-  later: "Later",
-  "no-date": "No Date",
+  overdue: "Überfällig",
+  today: "Heute",
+  tomorrow: "Morgen",
+  "this-week": "Diese Woche",
+  later: "Später",
+  "no-date": "Kein Datum",
 };
 
-export const BUCKET_ORDER: DueBucket[] = ["overdue", "today", "tomorrow", "this-week", "later", "no-date"];
+export const BUCKET_ORDER: DueBucket[] = [
+  "overdue",
+  "today",
+  "tomorrow",
+  "this-week",
+  "later",
+  "no-date",
+];

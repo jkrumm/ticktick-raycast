@@ -1,41 +1,80 @@
-import { Action, ActionPanel, Form, showHUD, showToast, Toast, popToRoot } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Form,
+  showHUD,
+  showToast,
+  Toast,
+  popToRoot,
+} from "@raycast/api";
 import { useFetch } from "@raycast/utils";
-import { useState } from "react";
-import { apiBase, authHeader, client, prefs } from "./api/client";
-import { VikunjaProject } from "./api/types";
-import { priorityLabel } from "./lib/format";
+import { useState, useMemo } from "react";
+import { authHeader, client, prefs } from "./api/client";
+import { TickTickProject } from "./api/types";
+import { parse } from "./lib/parse";
+import { formatDue, priorityLabel } from "./lib/format";
+
+// Berlin calendar date at midnight UTC — format expected by the API
+function toApiAllDayDate(date: Date): string {
+  const berlinDate = date.toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
+  return `${berlinDate}T00:00:00+0000`;
+}
 
 export default function QuickAdd() {
+  const [input, setInput] = useState("");
+  const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data, isLoading } = useFetch<VikunjaProject[]>(`${apiBase()}/projects?per_page=500`, {
-    headers: authHeader(),
-    keepPreviousData: true,
-  });
+  const base = prefs().baseUrl.replace(/\/$/, "");
 
-  const projects = data ?? [];
-  const defaultProjectId = prefs().defaultProjectId ?? (projects[0] ? String(projects[0].id) : "");
+  const { data: projectsRaw, isLoading } = useFetch<{ data: TickTickProject[] }>(
+    `${base}/api/ticktick/projects`,
+    { headers: authHeader(), keepPreviousData: true },
+  );
 
-  async function handleSubmit(values: { title: string; project_id: string; priority: string }) {
-    const title = values.title.trim();
+  const projects = projectsRaw?.data ?? [];
+  const defaultProjectId = prefs().defaultProjectId ?? projects[0]?.id ?? "";
+
+  const parsed = useMemo(() => parse(input, projects), [input, projects]);
+
+  const resolvedProject =
+    parsed.project ??
+    (defaultProjectId ? projects.find((p) => p.id === defaultProjectId) : null) ??
+    null;
+
+  const dateLabel = parsed.dueDate
+    ? (formatDue(parsed.dueDate.toISOString()) ??
+      parsed.dueDate.toLocaleDateString("de-DE", { day: "numeric", month: "long" }))
+    : null;
+
+  async function handleSubmit() {
+    const title = parsed.title.trim() || input.trim();
     if (!title) {
-      await showToast({ style: Toast.Style.Failure, title: "Title is required" });
+      await showToast({ style: Toast.Style.Failure, title: "Titel fehlt" });
       return;
     }
-
-    const projectId = parseInt(values.project_id || defaultProjectId);
+    const projectId = resolvedProject?.id ?? defaultProjectId;
     if (!projectId) {
-      await showToast({ style: Toast.Style.Failure, title: "Select a project" });
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Kein Projekt — Standard in den Einstellungen setzen",
+      });
       return;
     }
-
     setIsSubmitting(true);
     try {
-      await client.createTask(projectId, { title, priority: parseInt(values.priority) });
-      await showHUD(`✓ ${title}`);
+      await client.createTask({
+        title,
+        projectId,
+        dueDate: parsed.dueDate ? toApiAllDayDate(parsed.dueDate) : undefined,
+        timeZone: "Europe/Berlin",
+        priority: parsed.priority > 0 ? (parsed.priority as 1 | 3 | 5) : undefined,
+        content: note.trim() || undefined,
+      });
+      await showHUD(`Hinzugefuegt: ${title}`);
       await popToRoot();
     } catch (e) {
-      await showToast({ style: Toast.Style.Failure, title: "Failed", message: String(e) });
+      await showToast({ style: Toast.Style.Failure, title: "Fehler", message: String(e) });
     } finally {
       setIsSubmitting(false);
     }
@@ -43,27 +82,39 @@ export default function QuickAdd() {
 
   return (
     <Form
-      navigationTitle="Quick Add Task"
+      navigationTitle="Aufgabe hinzufügen"
       isLoading={isSubmitting || isLoading}
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Create Task" onSubmit={handleSubmit} />
+          <Action title="Aufgabe hinzufügen" onAction={handleSubmit} />
         </ActionPanel>
       }
     >
-      <Form.TextField id="title" title="" placeholder="Task title…" autoFocus />
+      <Form.TextField
+        id="input"
+        title="Aufgabe"
+        placeholder="#HomeLab morgen !m Carpe diem"
+        value={input}
+        onChange={setInput}
+        autoFocus
+      />
 
-      <Form.Dropdown id="project_id" title="Project" defaultValue={defaultProjectId}>
-        {projects.map((p: VikunjaProject) => (
-          <Form.Dropdown.Item key={p.id} value={String(p.id)} title={p.title} />
-        ))}
-      </Form.Dropdown>
+      <Form.Separator />
 
-      <Form.Dropdown id="priority" title="Priority" defaultValue="0">
-        {([0, 1, 2, 3, 4, 5] as const).map((p) => (
-          <Form.Dropdown.Item key={p} value={String(p)} title={priorityLabel(p)} />
-        ))}
-      </Form.Dropdown>
+      <Form.Description title="Projekt" text={resolvedProject?.name ?? "—"} />
+      <Form.Description title="Datum" text={dateLabel ?? "—"} />
+      <Form.Description title="Priorität" text={parsed.priority > 0 ? priorityLabel(parsed.priority) : "—"} />
+      <Form.Description title="Titel" text={parsed.title || (input ? input : "—")} />
+
+      <Form.Separator />
+
+      <Form.TextArea
+        id="note"
+        title="Beschreibung"
+        placeholder="Weitere Details..."
+        value={note}
+        onChange={setNote}
+      />
     </Form>
   );
 }
