@@ -24,3 +24,9 @@ Always rebuild before testing:
 ```bash
 cd /Users/johannes.krumm/SourceRoot/ticktick-raycast/raycast && npx ray build -e dist
 ```
+
+After homelab-api changes (must use `--build` to rebuild the Docker image):
+
+```bash
+ssh homelab "cd ~/homelab && git pull && docker compose build homelab-api && doppler run -- docker compose up -d --force-recreate homelab-api"
+```
