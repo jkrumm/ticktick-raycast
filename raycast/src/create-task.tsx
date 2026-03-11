@@ -11,7 +11,7 @@ import { useFetch } from "@raycast/utils";
 import { useState } from "react";
 import { authHeader, client, prefs } from "./api/client";
 import { TickTickProject, TickTickTask } from "./api/types";
-import { priorityLabel } from "./lib/format";
+import { priorityLabel, toTickTickDate } from "./lib/format";
 
 interface Props {
   task?: TickTickTask;
@@ -74,8 +74,9 @@ export default function CreateTask({ task, onDone }: Props) {
           title: values.title.trim(),
           content: values.content.trim() || "",
           priority: Number(values.priority) as 0 | 1 | 3 | 5,
-          dueDate: values.dueDate ? values.dueDate.toISOString() : null,
-          isAllDay: !!values.dueDate,
+          dueDate: values.dueDate
+            ? values.dueDate.toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
+            : null,
           projectId,
         });
       } else {
@@ -83,8 +84,9 @@ export default function CreateTask({ task, onDone }: Props) {
           title: values.title.trim(),
           content: values.content.trim() || undefined,
           priority: Number(values.priority) as 0 | 1 | 3 | 5,
-          dueDate: values.dueDate ? values.dueDate.toISOString() : null,
-          isAllDay: !!values.dueDate,
+          dueDate: values.dueDate
+            ? values.dueDate.toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
+            : null,
           projectId,
           timeZone: "Europe/Berlin",
         });

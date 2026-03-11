@@ -16,3 +16,11 @@ Raycast extension for TickTick task management via HomeLab proxy. No direct Tick
 - Tasks are loaded per-project via `GET /api/ticktick/project/{id}/data`
 - Priority scale: 0=None, 1=Low, 3=Medium, 5=High (no 2 or 4)
 - New dependencies: `chrono-node` (NL date parsing), `similarity` (fuzzy project matching)
+
+## After Code Changes
+
+Always rebuild before testing:
+
+```bash
+cd /Users/johannes.krumm/SourceRoot/ticktick-raycast/raycast && npx ray build -e dist
+```

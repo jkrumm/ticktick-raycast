@@ -1,14 +1,12 @@
 import { Color, Icon } from "@raycast/api";
 
 export function today(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
 }
 
 export function daysFromNow(n: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const d = new Date(Date.now() + n * 86_400_000);
+  return d.toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
 }
 
 // Parse TickTick ISO date string into a YYYY-MM-DD string in Europe/Berlin timezone.
@@ -21,10 +19,9 @@ export function taskDate(due: string): string {
   });
 }
 
-// Convert YYYY-MM-DD to a TickTick-compatible ISO string (midnight local time).
+// Pass YYYY-MM-DD directly — the server normalizes to ISO midnight UTC and sets isAllDay.
 export function toTickTickDate(yyyymmdd: string): string {
-  const [y, m, d] = yyyymmdd.split("-").map(Number);
-  return new Date(y, m - 1, d).toISOString();
+  return yyyymmdd;
 }
 
 // Next Saturday from today (returns today if already Saturday).

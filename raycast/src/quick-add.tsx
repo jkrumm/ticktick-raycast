@@ -12,16 +12,7 @@ import { useState, useMemo } from "react";
 import { authHeader, client, prefs } from "./api/client";
 import { TickTickProject } from "./api/types";
 import { parse } from "./lib/parse";
-import { formatDue, priorityLabel } from "./lib/format";
-
-// Berlin calendar date at local midnight — matches how TickTick stores all-day dates
-function toApiAllDayDate(date: Date): string {
-  const berlinDate = date.toLocaleDateString("sv-SE", {
-    timeZone: "Europe/Berlin",
-  });
-  const [y, m, d] = berlinDate.split("-").map(Number);
-  return new Date(y, m - 1, d).toISOString();
-}
+import { formatDue, priorityLabel, toTickTickDate } from "./lib/format";
 
 export default function QuickAdd() {
   const [input, setInput] = useState("");
@@ -76,8 +67,9 @@ export default function QuickAdd() {
       await client.createTask({
         title,
         projectId,
-        dueDate: parsed.dueDate ? toApiAllDayDate(parsed.dueDate) : undefined,
-        isAllDay: !!parsed.dueDate,
+        dueDate: parsed.dueDate
+          ? parsed.dueDate.toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })
+          : undefined,
         timeZone: "Europe/Berlin",
         priority:
           parsed.priority > 0 ? (parsed.priority as 1 | 3 | 5) : undefined,

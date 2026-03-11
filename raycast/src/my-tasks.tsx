@@ -204,8 +204,8 @@ function TaskActions({
       title: "Fälligkeit setzen…",
     });
     try {
-      const dueDate = yyyymmdd ? toTickTickDate(yyyymmdd) : null;
-      await client.updateTask(task.id, { dueDate, isAllDay: !!dueDate });
+      const dueDate = yyyymmdd ?? null;
+      await client.updateTask(task.id, { dueDate });
       onPatch({ dueDate, isAllDay: !!dueDate });
       toast.style = Toast.Style.Success;
       toast.title = dueDate
