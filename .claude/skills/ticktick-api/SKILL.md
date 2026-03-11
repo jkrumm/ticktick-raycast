@@ -164,16 +164,54 @@ Note: TickTick uses 0/1/3/5 — there is no 2 or 4.
 
 ---
 
-## CreateTask Input Shape
+## CreateTask / UpdateTask Input Shape
 
 ```typescript
 interface CreateTaskInput {
   title: string;
   projectId?: string;        // omit to use default inbox
-  dueDate?: string | null;   // ISO 8601
+  dueDate?: string | null;   // YYYY-MM-DD preferred (see Date Handling below)
   priority?: 0 | 1 | 3 | 5;
   content?: string;          // markdown notes
-  isAllDay?: boolean;        // true when no specific time
-  timeZone?: string;         // default "Europe/Berlin"
+  timeZone?: string;         // default "Europe/Berlin" — used to compute midnight
 }
 ```
+
+---
+
+## Date Handling (Critical)
+
+The proxy normalizes dates server-side. **Clients should send `dueDate` as `YYYY-MM-DD`** (e.g. `"2026-03-11"`). The server:
+
+1. Computes midnight in the task's `timeZone` (using `Intl` offset — works regardless of server TZ)
+2. Formats as `"2026-03-10T23:00:00.000+0000"` (Berlin midnight for March 11)
+3. Sets `startDate = dueDate` (TickTick requires both for all-day tasks to appear)
+4. Sets `isAllDay: true`
+
+**Why this matters — lessons learned:**
+- TickTick requires **`startDate` = `dueDate`** — omitting `startDate` causes no date to appear
+- Date must be **midnight in the task's timezone**, not midnight UTC
+- Format must be `+0000` not `Z` (technically equivalent but TickTick is strict)
+- Never compute the ISO string client-side — server/Mac timezone causes wrong results if user is abroad
+
+**Example — what the proxy sends to TickTick for `dueDate: "2026-03-11"` + `timeZone: "Europe/Berlin"`:**
+```json
+{
+  "dueDate": "2026-03-10T23:00:00.000+0000",
+  "startDate": "2026-03-10T23:00:00.000+0000",
+  "isAllDay": true,
+  "timeZone": "Europe/Berlin"
+}
+```
+
+**What TickTick returns for existing all-day tasks (for reference):**
+```json
+{
+  "dueDate": "2026-03-10T23:00:00.000+0000",
+  "startDate": "2026-03-10T23:00:00.000+0000",
+  "isAllDay": true,
+  "timeZone": "Europe/Berlin"
+}
+```
+
+Reading dates back: use `toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" })` — never slice the first 10 chars of the ISO string, as the UTC date differs from the Berlin date.
