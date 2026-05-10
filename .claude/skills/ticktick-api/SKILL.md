@@ -1,14 +1,14 @@
 ---
 name: ticktick-api
-description: HomeLab TickTick proxy API reference — endpoints, task model, auth, and code patterns for api.jkrumm.com
+description: HomeLab TickTick proxy API reference — endpoints, task model, auth, and code patterns for argo.jkrumm.com/api
 agent: general-purpose
 ---
 
 # TickTick HomeLab Proxy API Reference
 
-The HomeLab proxy at `api.jkrumm.com` absorbs TickTick OAuth2 complexity and exposes a simple Bearer-token API.
+The HomeLab proxy at `argo.jkrumm.com/api` absorbs TickTick OAuth2 complexity and exposes a simple Bearer-token API.
 
-**Base URL:** `https://api.jkrumm.com`
+**Base URL:** `https://argo.jkrumm.com/api`
 **Auth:** `Authorization: Bearer <token>` on every request (token configured in Raycast preferences)
 **Health check:** `GET /api/ping`
 
@@ -99,12 +99,12 @@ interface TickTickProjectData {
 
 | Method | Path | Purpose |
 |-|-|-|
-| GET | `/api/ticktick/projects` | Get all projects → `TickTickProject[]` |
-| GET | `/api/ticktick/project/{projectId}/data` | Get project with tasks + columns → `TickTickProjectData` |
-| POST | `/api/ticktick/task` | Create task → `TickTickTask` |
-| POST | `/api/ticktick/task/{taskId}` | Update task (partial) → `TickTickTask` |
-| POST | `/api/ticktick/project/{projectId}/task/{taskId}/complete` | Mark task complete |
-| DELETE | `/api/ticktick/project/{projectId}/task/{taskId}` | Delete task |
+| GET | `/ticktick/projects` | Get all projects → `TickTickProject[]` |
+| GET | `/ticktick/project/{projectId}/data` | Get project with tasks + columns → `TickTickProjectData` |
+| POST | `/ticktick/task` | Create task → `TickTickTask` |
+| POST | `/ticktick/task/{taskId}` | Update task (partial) → `TickTickTask` |
+| POST | `/ticktick/project/{projectId}/task/{taskId}/complete` | Mark task complete |
+| DELETE | `/ticktick/project/{projectId}/task/{taskId}` | Delete task |
 | GET | `/api/ping` | Authenticated health check |
 
 ---
@@ -113,14 +113,14 @@ interface TickTickProjectData {
 
 ```typescript
 // List all projects
-const projects = await api<TickTickProject[]>("/api/ticktick/projects");
+const projects = await api<TickTickProject[]>("/ticktick/projects");
 
 // Get all tasks for a project (includes completed)
-const data = await api<TickTickProjectData>(`/api/ticktick/project/${projectId}/data`);
+const data = await api<TickTickProjectData>(`/ticktick/project/${projectId}/data`);
 const activeTasks = data.tasks.filter(t => t.status === 0);
 
 // Create a task
-const task = await api<TickTickTask>("/api/ticktick/task", {
+const task = await api<TickTickTask>("/ticktick/task", {
   method: "POST",
   body: JSON.stringify({
     title: "Fix login bug",
@@ -133,18 +133,18 @@ const task = await api<TickTickTask>("/api/ticktick/task", {
 });
 
 // Update a task
-await api(`/api/ticktick/task/${taskId}`, {
+await api(`/ticktick/task/${taskId}`, {
   method: "POST",
   body: JSON.stringify({ title: "Updated title", priority: 5 }),
 });
 
 // Mark complete
-await api(`/api/ticktick/project/${projectId}/task/${taskId}/complete`, {
+await api(`/ticktick/project/${projectId}/task/${taskId}/complete`, {
   method: "POST",
 });
 
 // Delete a task
-await api(`/api/ticktick/project/${projectId}/task/${taskId}`, {
+await api(`/ticktick/project/${projectId}/task/${taskId}`, {
   method: "DELETE",
 });
 ```

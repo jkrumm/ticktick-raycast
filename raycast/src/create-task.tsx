@@ -26,7 +26,7 @@ export default function CreateTask({ task, onDone }: Props) {
   const base = prefs().baseUrl.replace(/\/$/, "");
 
   const { data: projectsRaw } = useFetch<{ data: TickTickProject[] }>(
-    `${base}/api/ticktick/projects`,
+    `${base}/ticktick/projects`,
     {
       headers: authHeader(),
       keepPreviousData: true,

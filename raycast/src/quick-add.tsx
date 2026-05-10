@@ -23,7 +23,7 @@ export default function QuickAdd() {
 
   const { data: projectsRaw, isLoading } = useFetch<{
     data: TickTickProject[];
-  }>(`${base}/api/ticktick/projects`, {
+  }>(`${base}/ticktick/projects`, {
     headers: authHeader(),
     keepPreviousData: true,
   });

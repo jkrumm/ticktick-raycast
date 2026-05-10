@@ -60,17 +60,17 @@
     {
       "name": "apiToken",
       "title": "API Token",
-      "description": "Bearer token for the HomeLab TickTick proxy at api.jkrumm.com",
+      "description": "Bearer token for the argo TickTick proxy at argo.jkrumm.com/api",
       "type": "password",
       "required": true
     },
     {
       "name": "baseUrl",
       "title": "API Base URL",
-      "description": "HomeLab proxy base URL",
+      "description": "argo proxy base URL (incl. /api path prefix)",
       "type": "textfield",
       "required": true,
-      "default": "https://api.jkrumm.com"
+      "default": "https://argo.jkrumm.com/api"
     },
     {
       "name": "defaultProjectId",

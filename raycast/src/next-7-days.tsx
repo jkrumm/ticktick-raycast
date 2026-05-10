@@ -139,7 +139,7 @@ export default function Next7Days() {
     data: projectData,
     isLoading: projectsLoading,
     revalidate,
-  } = useFetch<{ data: TickTickProject[] }>(`${base}/api/ticktick/projects`, {
+  } = useFetch<{ data: TickTickProject[] }>(`${base}/ticktick/projects`, {
     headers: authHeader(),
     keepPreviousData: true,
     onData: (raw) => {

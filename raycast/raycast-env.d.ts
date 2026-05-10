@@ -8,7 +8,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 type ExtensionPreferences = {
-  /** API Token - Bearer token for the HomeLab TickTick proxy at api.jkrumm.com */
+  /** API Token - Bearer token for the HomeLab TickTick proxy at argo.jkrumm.com/api */
   "apiToken": string,
   /** API Base URL - HomeLab proxy base URL */
   "baseUrl": string,

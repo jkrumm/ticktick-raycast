@@ -36,7 +36,7 @@ export default function MenuBar() {
 
   const { isLoading: projectsLoading, revalidate } = useFetch<{
     data: TickTickProject[];
-  }>(`${base}/api/ticktick/projects`, {
+  }>(`${base}/ticktick/projects`, {
     headers: authHeader(),
     keepPreviousData: true,
     onData: (raw) => {
