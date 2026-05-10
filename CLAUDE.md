@@ -27,8 +27,6 @@ Always rebuild before testing:
 cd /Users/johannes.krumm/SourceRoot/ticktick-raycast/raycast && npx ray build -e dist
 ```
 
-After homelab-api changes (must use `--build` to rebuild the Docker image):
-
-```bash
-ssh homelab "cd ~/homelab && git pull && docker compose build homelab-api && doppler run -- docker compose up -d --force-recreate homelab-api"
-```
+The TickTick proxy now lives in [`jkrumm/argo`](https://github.com/jkrumm/argo)
+on the VPS. Push to argo's master triggers a RollHook deploy automatically —
+no manual `docker compose build` step here.
