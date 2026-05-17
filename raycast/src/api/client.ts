@@ -50,27 +50,27 @@ export const client = {
   getProjects: () => req<TickTickProject[]>("/ticktick/projects"),
 
   getProjectData: (projectId: string) =>
-    req<TickTickProjectData>(`/ticktick/project/${projectId}/data`),
+    req<TickTickProjectData>(`/ticktick/projects/${projectId}/data`),
 
   createTask: (data: CreateTaskInput) =>
-    req<TickTickTask>("/ticktick/task", {
+    req<TickTickTask>("/ticktick/tasks", {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
   updateTask: (taskId: string, data: Partial<TickTickTask>) =>
-    req<TickTickTask>(`/ticktick/task/${taskId}`, {
+    req<TickTickTask>(`/ticktick/tasks/${taskId}`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
   completeTask: (projectId: string, taskId: string) =>
-    req<void>(`/ticktick/project/${projectId}/task/${taskId}/complete`, {
+    req<void>(`/ticktick/projects/${projectId}/tasks/${taskId}/complete`, {
       method: "POST",
     }),
 
   deleteTask: (projectId: string, taskId: string) =>
-    req<void>(`/ticktick/project/${projectId}/task/${taskId}`, {
+    req<void>(`/ticktick/projects/${projectId}/tasks/${taskId}`, {
       method: "DELETE",
     }),
 };

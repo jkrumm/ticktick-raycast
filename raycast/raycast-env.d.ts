@@ -8,9 +8,9 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 type ExtensionPreferences = {
-  /** API Token - Bearer token for the HomeLab TickTick proxy at argo.jkrumm.com/api */
+  /** API Token - Bearer token for the argo TickTick proxy at argo.jkrumm.com/api */
   "apiToken": string,
-  /** API Base URL - HomeLab proxy base URL */
+  /** API Base URL - argo proxy base URL (incl. /api path prefix) */
   "baseUrl": string,
   /** Default Project ID - Project used when Quick Add cannot match a project (optional) */
   "defaultProjectId"?: string

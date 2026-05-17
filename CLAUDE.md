@@ -13,7 +13,7 @@ Raycast extension for TickTick task management via HomeLab proxy. No direct Tick
 - HomeLab proxy: `https://argo.jkrumm.com/api/ticktick/*`
 - Auth: Bearer token in Raycast preferences (`apiToken`)
 - Extension source: `raycast/src/`
-- Tasks are loaded per-project via `GET /ticktick/project/{id}/data`
+- Tasks are loaded per-project via `GET /ticktick/projects/{id}/data`
 - Priority scale: 0=None, 1=Low, 3=Medium, 5=High (no 2 or 4)
 - New dependencies: `chrono-node` (NL date parsing), `similarity` (fuzzy project matching)
 - Date handling: send `dueDate` as `YYYY-MM-DD` — proxy normalizes to midnight in `timeZone`, sets `startDate = dueDate`, `isAllDay: true`

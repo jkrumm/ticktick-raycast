@@ -100,11 +100,11 @@ interface TickTickProjectData {
 | Method | Path | Purpose |
 |-|-|-|
 | GET | `/ticktick/projects` | Get all projects → `TickTickProject[]` |
-| GET | `/ticktick/project/{projectId}/data` | Get project with tasks + columns → `TickTickProjectData` |
-| POST | `/ticktick/task` | Create task → `TickTickTask` |
-| POST | `/ticktick/task/{taskId}` | Update task (partial) → `TickTickTask` |
-| POST | `/ticktick/project/{projectId}/task/{taskId}/complete` | Mark task complete |
-| DELETE | `/ticktick/project/{projectId}/task/{taskId}` | Delete task |
+| GET | `/ticktick/projects/{projectId}/data` | Get project with tasks + columns → `TickTickProjectData` |
+| POST | `/ticktick/tasks` | Create task → `TickTickTask` |
+| POST | `/ticktick/tasks/{taskId}` | Update task (partial) → `TickTickTask` |
+| POST | `/ticktick/projects/{projectId}/tasks/{taskId}/complete` | Mark task complete |
+| DELETE | `/ticktick/projects/{projectId}/tasks/{taskId}` | Delete task |
 | GET | `/api/ping` | Authenticated health check |
 
 ---
@@ -116,11 +116,11 @@ interface TickTickProjectData {
 const projects = await api<TickTickProject[]>("/ticktick/projects");
 
 // Get all tasks for a project (includes completed)
-const data = await api<TickTickProjectData>(`/ticktick/project/${projectId}/data`);
+const data = await api<TickTickProjectData>(`/ticktick/projects/${projectId}/data`);
 const activeTasks = data.tasks.filter(t => t.status === 0);
 
 // Create a task
-const task = await api<TickTickTask>("/ticktick/task", {
+const task = await api<TickTickTask>("/ticktick/tasks", {
   method: "POST",
   body: JSON.stringify({
     title: "Fix login bug",
@@ -133,18 +133,18 @@ const task = await api<TickTickTask>("/ticktick/task", {
 });
 
 // Update a task
-await api(`/ticktick/task/${taskId}`, {
+await api(`/ticktick/tasks/${taskId}`, {
   method: "POST",
   body: JSON.stringify({ title: "Updated title", priority: 5 }),
 });
 
 // Mark complete
-await api(`/ticktick/project/${projectId}/task/${taskId}/complete`, {
+await api(`/ticktick/projects/${projectId}/tasks/${taskId}/complete`, {
   method: "POST",
 });
 
 // Delete a task
-await api(`/ticktick/project/${projectId}/task/${taskId}`, {
+await api(`/ticktick/projects/${projectId}/tasks/${taskId}`, {
   method: "DELETE",
 });
 ```
